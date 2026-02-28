@@ -59,7 +59,27 @@ export async function acceptFriendRequest(requestId) {
   return response.data;
 }
 
+export async function declineFriendRequest (id) {
+  const res = await api.delete(`/users/friend-request/${id}/decline`);
+  return res.data;
+};
+
 export async function getStreamToken() {
   const response = await api.get("/chat/token");
   return response.data;
 }
+
+export const getFriendProfile = async (id) => {
+  const res = await api.get(`/users/friends/${id}`);
+  return res.data;
+};
+
+export const updateProfile = async (data) => {
+    const res = await api.put("/auth/update-profile", data);
+    return res.data;
+};
+
+export const removeFriend = async (id) => {
+    const res = await api.delete(`/users/friends/${id}`);
+    return res.data;
+};

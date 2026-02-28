@@ -120,7 +120,6 @@ export const Login = async (req, res) => {
     }
 }
 
-
 export const Logout = async (req, res) => {
     res.clearCookie("jwt")
     res.status(200).json({
@@ -161,6 +160,65 @@ export const onboard = async (req, res) => {
     } catch (error) {
         console.error("Onboarding Error:", error);
         return res.status(500).json({
+            success: false,
+            message: "Internal Server Error",
+        });
+    }
+};
+
+export const updateProfile = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const { fullName, bio, nativeLanguage, learningLanguage, location, password } = req.body;
+
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        if (fullName) user.fullName = fullName;
+        if (bio) user.bio = bio;
+        if (nativeLanguage) user.nativeLanguage = nativeLanguage;
+        if (learningLanguage) user.learningLanguage = learningLanguage;
+        if (location) user.location = location;
+
+        if (password) {
+            if (password.length < 6) {
+                return res.status(400).json({ 
+                    success: false, 
+                    message: "Password must be at least 6 characters" 
+                });
+            }
+            user.password = password;
+        }
+
+        await user.save();
+
+        if (fullName) {
+            try {
+                await upsertStreamUser({
+                    id: user._id.toString(),
+                    name: user.fullName,
+                    image: user.profilePic || "",
+                });
+            } catch (error) {
+                console.error("Error updating Stream user during profile update");
+            }
+        }
+
+        const userResponse = user.toObject();
+        delete userResponse.password;
+
+        res.status(200).json({
+            success: true,
+            message: "Profile updated successfully",
+            user: userResponse,
+        });
+
+    } catch (error) {
+        console.error("Update Profile Error:", error);
+        res.status(500).json({
             success: false,
             message: "Internal Server Error",
         });

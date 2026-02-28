@@ -1,10 +1,11 @@
-import { Link, useLocation } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import useAuthUser from "../hooks/useAuthUser";
 import { BellIcon, HomeIcon, ShipWheelIcon, UsersIcon } from "lucide-react";
 
 const Sidebar = () => {
   const { authUser } = useAuthUser();
   const location = useLocation();
+  const navigate = useNavigate()
   const currentPath = location.pathname;
 
   return (
@@ -49,10 +50,13 @@ const Sidebar = () => {
 
       {/* USER PROFILE SECTION */}
       <div className="p-4 border-t border-base-300 mt-auto">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 cursor-pointer" onClick={()=> navigate("/profile")} >
           <div className="avatar">
             <div className="w-10 rounded-full">
-              <img src={authUser?.profilePic} alt="User Avatar" />
+              <img src={authUser?.profilePic} onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = "/user.png";
+              }} alt="User Avatar" />
             </div>
           </div>
           <div className="flex-1">

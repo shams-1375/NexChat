@@ -13,14 +13,14 @@ const friendRequestSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ["pending", "accepted"],
+        enum: ["pending", "accepted", "declined"],
         default: "pending"
     }
 
 
-}, {timestamps: true} )
+}, { timestamps: true })
 
-const FriendRequest =  mongoose.model("FriendRequest", friendRequestSchema)
+const FriendRequest = mongoose.model("FriendRequest", friendRequestSchema)
 
 
 export default FriendRequest

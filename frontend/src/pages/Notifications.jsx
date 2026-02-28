@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { acceptFriendRequest, getFriendRequests } from "../lib/api";
+import { acceptFriendRequest, getFriendRequests, declineFriendRequest } from "../lib/api";
 import { Bell, BellIcon, ClockIcon, MessageSquareIcon, UserCheckIcon } from "lucide-react";
 
 const Notifications = () => {
@@ -16,6 +16,19 @@ const Notifications = () => {
       queryClient.invalidateQueries({ queryKey: ["friendRequests"] });
       queryClient.invalidateQueries({ queryKey: ["friends"] });
     },
+  });
+
+  const { mutate: declineRequestMutation, isPending: isDeclining } = useMutation({
+    mutationFn: declineFriendRequest,
+    onSuccess: () => {
+      // This tells TanStack Query to throw away the local data
+      // and fetch the fresh "pending-only" list from the server.
+      queryClient.invalidateQueries({ queryKey: ["friendRequests"] });
+    },
+    onError: (error) => {
+      console.error("Failed to decline:", error);
+      // Optional: Add a toast notification here
+    }
   });
 
   const incomingRequests = friendRequests?.incomingRequest || [];
@@ -65,13 +78,23 @@ const Notifications = () => {
                             </div>
                           </div>
 
-                          <button
-                            className="btn btn-primary btn-sm"
-                            onClick={() => acceptRequestMutation(request._id)}
-                            disabled={isPending}
-                          >
-                            Accept
-                          </button>
+                          <div className="flex gap-2">
+                            <button
+                              className="btn btn-primary btn-sm"
+                              onClick={() => acceptRequestMutation(request._id)}
+                              disabled={isPending || isDeclining}
+                            >
+                              Accept
+                            </button>
+
+                            <button
+                              className="btn btn-outline btn-error btn-sm"
+                              onClick={() => declineRequestMutation(request._id)}
+                              disabled={isPending || isDeclining}
+                            >
+                              Decline
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>

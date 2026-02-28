@@ -61,6 +61,10 @@ const Onboarding = () => {
                   <img
                     src={formState.profilePic}
                     alt="Profile Preview"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = "/user.jpg";
+                    }}
                     className="w-full h-full object-cover"
                   />
                 ) : (

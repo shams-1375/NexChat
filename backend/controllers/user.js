@@ -58,7 +58,8 @@ export const sendFriendRequest = async (req, res) => {
             $or: [
                 { sender: myId, recipient: recipientId },
                 { sender: recipientId, recipient: myId }
-            ]
+            ],
+            status: "pending"
         })
 
         if (existingRequest) return res.status(400).json({ message: "A friend request already exists between you and this user" })
@@ -108,6 +109,21 @@ export const acceptFriendRequest = async (req, res) => {
     }
 }
 
+export const declineFriendRequest = async (req, res) => {
+    try {
+        const { id: requestId } = req.params;
+        const deletedRequest = await FriendRequest.findByIdAndDelete(requestId);
+
+        if (!deletedRequest) {
+            return res.status(404).json({ message: "Not found" });
+        }
+
+        res.status(200).json({ message: "Declined and removed successfully" });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 export const getFriendRequests = async (req, res) => {
     try {
         const incomingRequest = await FriendRequest.find({
@@ -145,3 +161,53 @@ export const getOutgoingFriendReqs = async (req, res) => {
         })
     }
 }
+
+export const getFriendProfile = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const friend = await User.findById(id).select(
+            "fullName profilePic nativeLanguage learningLanguage bio location email"
+        );
+
+        if (!friend) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.status(200).json(friend);
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+export const removeFriend = async (req, res) => {
+    try {
+        const myId = req.user.id;
+        const { id: friendId } = req.params;
+
+        await User.findByIdAndUpdate(myId, {
+            $pull: { friends: friendId }
+        });
+
+        await User.findByIdAndUpdate(friendId, {
+            $pull: { friends: myId }
+        });
+
+        await FriendRequest.findOneAndDelete({
+            $or: [
+                { sender: myId, recipient: friendId },
+                { sender: friendId, recipient: myId }
+            ],
+            status: "accepted"
+        });
+
+        res.status(200).json({ success: true, message: "Friend removed successfully" });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
