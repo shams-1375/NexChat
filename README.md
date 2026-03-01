@@ -54,5 +54,3 @@ Secure Login & Signup Flows
 🚨 Route Protection (Authenticated Access Only)
 
 🌍 Connect with Users Worldwide
-
-📱 Fully Responsive Design
